@@ -166,56 +166,6 @@ public class MainActivity extends AppCompatActivity {
         return image;
     }
 
-
-    private Bitmap getBitmapFromMat(Mat cvImg){
-        Bitmap result = Bitmap.createBitmap(cvImg.cols() , cvImg.rows() , Bitmap.Config.RGB_565);
-        Utils.matToBitmap(cvImg , result);
-        return result;
-    }
-
-    // helper method to apply mask to an image
-    private Mat applyMask(Mat cvImage , Mat mask){
-
-        // binarize mask
-        Imgproc.threshold(mask,mask,254,255,Imgproc.THRESH_BINARY);
-
-        Mat cvMaskedImage = new Mat();
-        cvImage.copyTo(cvMaskedImage , mask);
-
-        return cvMaskedImage;
-    }
-
-    // helper method to create an edge mask (Canny Edge Detector)
-    private Mat createCannyEdgeMask(Mat cvImg){
-        Mat cvEdgeMap= new Mat();
-        Imgproc.Canny(cvImg,cvEdgeMap,80,100);
-        Core.bitwise_not(cvEdgeMap,cvEdgeMap);
-        return cvEdgeMap;
-    }
-
-    // helper method to binarize image
-    private Mat binarize(Mat cvImg){
-        Mat cvBinarized = new Mat();
-        Mat cvGrayscaled = new Mat();
-
-        Imgproc.cvtColor(cvImg,cvGrayscaled,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,15,18);
-
-        return cvBinarized;
-    }
-
-    private Mat smoothen(Mat cvImg){
-        Mat cvSmoothenedImage = new Mat();
-        Imgproc.GaussianBlur(cvImg,cvSmoothenedImage,new Size(3,3),0);
-        return cvSmoothenedImage;
-    }
-
-    private Mat dilate(Mat cvImg){
-        Mat cvDilatedImage = new Mat();
-        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(2,2)));
-        return cvDilatedImage;
-    }
-
     private void saveBitmap(Bitmap bitmap) throws IOException {
         File photoFile = createImageFile();
         FileOutputStream outputStream = new FileOutputStream(photoFile);
@@ -230,33 +180,27 @@ public class MainActivity extends AppCompatActivity {
         Mat cvImage = new Mat();
         Utils.bitmapToMat(image,cvImage);
 
-        saveBitmap(getBitmapFromMat(cvImage));
+        saveBitmap(CVUtils.getBitmapFromMat(cvImage));
         // Create and apply edge mask
-         Mat cvEdgeMask = createCannyEdgeMask(cvImage);
-         Mat cvMaskedImage = applyMask(cvImage,cvEdgeMask);
+         Mat cvEdgeMask = CVUtils.createCannyEdgeMask(cvImage);
+         Mat cvMaskedImage = CVUtils.applyMask(cvImage,cvEdgeMask);
 
 
         // Binarize Image
-        Mat cvBinarizedImage = binarize(cvMaskedImage);
+        Mat cvBinarizedImage = CVUtils.binarize(cvMaskedImage);
 
         // Erode Image for more clarity
-        Mat cvDilatedImage = dilate(cvBinarizedImage);
-
-        // Mat cvSmoothenedImage = smoothen(cvBinarizedImage);
+        Mat cvDilatedImage = CVUtils.dilate(cvBinarizedImage);
 
         // convert mat to bitmap
-        Bitmap result = getBitmapFromMat(cvDilatedImage);
+        Bitmap result = CVUtils.getBitmapFromMat(cvDilatedImage);
 
         // save bitmap
         saveBitmap(result);
 
         Log.d(TAG, "processImage: bitmap config : "+ result.getConfig().toString());
 
-        // convert to ARGB888 type config
         Bitmap resultARGB = result.copy(Bitmap.Config.ARGB_8888 , true);
-
-        // String detectedText = tesseract.detectLines(resultARGB);
-        // Log.d(TAG, "processImage:  " + detectedText);
 
         ivProcessed.setImageBitmap(resultARGB);
         this.processedImage = resultARGB;
