@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int REQUEST_TAKE_PHOTO = 1;
+    public static final String EXTRA_DETECTED_TEXT = "DETECTED TEXT";
+
 
     static {
         if (!OpenCVLoader.initDebug()) {
@@ -40,9 +43,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private ImageView ivOrg = null, ivProcessed = null;
+    private Button bProcessText=null;
 
-    ImageView ivOrg = null, ivProcessed = null;
     private String mCurrentPhotoPath;
+    private Tesseract tesseract;
+
+    private Bitmap processedImage=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +58,12 @@ public class MainActivity extends AppCompatActivity {
 
         ivOrg = (ImageView) findViewById(R.id.iv_original);
         ivProcessed = (ImageView) findViewById(R.id.iv_processed);
+        bProcessText = (Button) findViewById(R.id.b_process_text);
 
+        tesseract = new Tesseract(MainActivity.this);
+        tesseract.setupTesseract();
+
+        bProcessText.setVisibility(View.INVISIBLE);
 
         ivOrg.setOnClickListener(new View.OnClickListener() {
 
@@ -72,6 +84,27 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+            }
+        });
+
+        bProcessText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // start the text detection
+                if (processedImage == null){
+                    Toast.makeText(MainActivity.this, "Please capture a pic", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Toast.makeText(MainActivity.this, "Detecting text", Toast.LENGTH_SHORT).show();
+                String text= tesseract.detectLines(processedImage);
+                Log.d(TAG, "onClick: " + text);
+
+                // start activity
+                Intent intent = new Intent(MainActivity.this,TextProcessingActivity.class);
+                intent.putExtra(MainActivity.EXTRA_DETECTED_TEXT , text);
+                startActivity(intent);
+
+                return;
             }
         });
     }
@@ -125,6 +158,8 @@ public class MainActivity extends AppCompatActivity {
         bmOptions.inJustDecodeBounds = false;
         bmOptions.inSampleSize = scaleFactor;
 
+        Log.d(TAG, "setPic: width : " + String.valueOf(targetW) + " ; height : " + String.valueOf(targetH));
+
         Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath,bmOptions);
         ivOrg.setImageBitmap(image);
 
@@ -164,15 +199,21 @@ public class MainActivity extends AppCompatActivity {
         Mat cvGrayscaled = new Mat();
 
         Imgproc.cvtColor(cvImg,cvGrayscaled,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,15,10);
+        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,15,18);
 
         return cvBinarized;
     }
 
     private Mat smoothen(Mat cvImg){
         Mat cvSmoothenedImage = new Mat();
-        Imgproc.GaussianBlur(cvImg,cvSmoothenedImage,new Size(5,5),0);
+        Imgproc.GaussianBlur(cvImg,cvSmoothenedImage,new Size(3,3),0);
         return cvSmoothenedImage;
+    }
+
+    private Mat dilate(Mat cvImg){
+        Mat cvDilatedImage = new Mat();
+        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(2,2)));
+        return cvDilatedImage;
     }
 
     private void saveBitmap(Bitmap bitmap) throws IOException {
@@ -189,19 +230,36 @@ public class MainActivity extends AppCompatActivity {
         Mat cvImage = new Mat();
         Utils.bitmapToMat(image,cvImage);
 
+        saveBitmap(getBitmapFromMat(cvImage));
         // Create and apply edge mask
-        Mat cvEdgeMask = createCannyEdgeMask(cvImage);
-        Mat cvMaskedImage = applyMask(cvImage,cvEdgeMask);
+         Mat cvEdgeMask = createCannyEdgeMask(cvImage);
+         Mat cvMaskedImage = applyMask(cvImage,cvEdgeMask);
+
 
         // Binarize Image
         Mat cvBinarizedImage = binarize(cvMaskedImage);
-        Mat cvSmoothenedImage = smoothen(cvBinarizedImage);
+
+        // Erode Image for more clarity
+        Mat cvDilatedImage = dilate(cvBinarizedImage);
+
+        // Mat cvSmoothenedImage = smoothen(cvBinarizedImage);
 
         // convert mat to bitmap
-        Bitmap result = getBitmapFromMat(cvSmoothenedImage);
+        Bitmap result = getBitmapFromMat(cvDilatedImage);
 
         // save bitmap
         saveBitmap(result);
-        ivProcessed.setImageBitmap(result);
+
+        Log.d(TAG, "processImage: bitmap config : "+ result.getConfig().toString());
+
+        // convert to ARGB888 type config
+        Bitmap resultARGB = result.copy(Bitmap.Config.ARGB_8888 , true);
+
+        // String detectedText = tesseract.detectLines(resultARGB);
+        // Log.d(TAG, "processImage:  " + detectedText);
+
+        ivProcessed.setImageBitmap(resultARGB);
+        this.processedImage = resultARGB;
+        this.bProcessText.setVisibility(View.VISIBLE);
     }
 }
