@@ -15,6 +15,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
+
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -51,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Bitmap processedImage=null;
 
+    private Uri photoUri = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         File photoFile = createImageFile();
                         if (photoFile != null) {
-                            Uri photoUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider",photoFile);
+                            photoUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider",photoFile);
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                             startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
                         }
@@ -125,21 +130,37 @@ public class MainActivity extends AppCompatActivity {
         return image;
     }
 
+    // helper method to launch crop activity
+    private void launchCropActivity(Uri imageUri){
+        CropImage.activity().setGuidelines(CropImageView.Guidelines.ON);
+        CropImage.activity(imageUri).start(this);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK){
             Toast.makeText(this, "Picture Capture Successful", Toast.LENGTH_SHORT).show();
-            Bitmap orgPic = setPic();
 
             // try image processing
+            // launch crop activity
+            launchCropActivity(photoUri);
+        }
+        else{
+            Toast.makeText(this, "Picture Capture Failed", Toast.LENGTH_SHORT).show();
+        }
+
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+
+            photoUri = result.getUri();
+            mCurrentPhotoPath = photoUri.getPath();
+
+            Bitmap orgPic = setPic();
             try {
                 processImage(orgPic);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else{
-            Toast.makeText(this, "Picture Capture Failed", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -159,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
         bmOptions.inSampleSize = scaleFactor;
 
         Log.d(TAG, "setPic: width : " + String.valueOf(targetW) + " ; height : " + String.valueOf(targetH));
+        Log.d(TAG, "setPic: ImageActualWidth: " + String.valueOf(photoW) + " ; ImageActualHeight : " + String.valueOf(photoH));
 
         Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath,bmOptions);
         ivOrg.setImageBitmap(image);

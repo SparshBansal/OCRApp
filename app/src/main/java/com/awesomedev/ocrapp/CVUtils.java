@@ -60,7 +60,7 @@ public class CVUtils {
 
     public static Mat dilate(Mat cvImg){
         Mat cvDilatedImage = new Mat();
-        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(2,2)));
+        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(1,1)));
         return cvDilatedImage;
     }
 
