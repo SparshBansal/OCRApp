@@ -47,12 +47,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private ImageView ivOrg = null, ivProcessed = null;
-    private Button bProcessText=null;
+    private Button bProcessText = null;
 
     private String mCurrentPhotoPath;
     private Tesseract tesseract;
 
-    private Bitmap processedImage=null;
+    private Bitmap processedImage = null;
 
     private Uri photoUri = null;
 
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         File photoFile = createImageFile();
                         if (photoFile != null) {
-                            photoUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider",photoFile);
+                            photoUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", photoFile);
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                             startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
                         }
@@ -96,17 +96,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // start the text detection
-                if (processedImage == null){
+                if (processedImage == null) {
                     Toast.makeText(MainActivity.this, "Please capture a pic", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 Toast.makeText(MainActivity.this, "Detecting text", Toast.LENGTH_SHORT).show();
-                String text= tesseract.detectLines(processedImage);
+                String text = tesseract.detectLines(processedImage);
                 Log.d(TAG, "onClick: " + text);
 
                 // start activity
-                Intent intent = new Intent(MainActivity.this,TextProcessingActivity.class);
-                intent.putExtra(MainActivity.EXTRA_DETECTED_TEXT , text);
+                Intent intent = new Intent(MainActivity.this, TextProcessingActivity.class);
+                intent.putExtra(MainActivity.EXTRA_DETECTED_TEXT, text);
                 startActivity(intent);
 
                 return;
@@ -131,25 +131,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // helper method to launch crop activity
-    private void launchCropActivity(Uri imageUri){
+    private void launchCropActivity(Uri imageUri) {
         CropImage.activity().setGuidelines(CropImageView.Guidelines.ON);
         CropImage.activity(imageUri).start(this);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK){
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             Toast.makeText(this, "Picture Capture Successful", Toast.LENGTH_SHORT).show();
 
             // try image processing
             // launch crop activity
             launchCropActivity(photoUri);
-        }
-        else{
+        } else {
             Toast.makeText(this, "Picture Capture Failed", Toast.LENGTH_SHORT).show();
         }
 
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK){
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
 
             photoUri = result.getUri();
@@ -164,25 +163,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap setPic(){
+    private Bitmap setPic() {
         int targetW = ivOrg.getWidth();
         int targetH = ivOrg.getHeight();
 
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         bmOptions.inJustDecodeBounds = true;
 
-        BitmapFactory.decodeFile(mCurrentPhotoPath,bmOptions);
+        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
         int photoW = bmOptions.outWidth;
         int photoH = bmOptions.outHeight;
 
-        int scaleFactor = Math.min(photoW/targetW , photoH/targetH);
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
         bmOptions.inJustDecodeBounds = false;
         bmOptions.inSampleSize = scaleFactor;
 
         Log.d(TAG, "setPic: width : " + String.valueOf(targetW) + " ; height : " + String.valueOf(targetH));
         Log.d(TAG, "setPic: ImageActualWidth: " + String.valueOf(photoW) + " ; ImageActualHeight : " + String.valueOf(photoH));
 
-        Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath,bmOptions);
+        Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
         ivOrg.setImageBitmap(image);
 
         return image;
@@ -192,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         File photoFile = createImageFile();
         FileOutputStream outputStream = new FileOutputStream(photoFile);
 
-        bitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         outputStream.flush();
         outputStream.close();
 
@@ -200,12 +199,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void processImage(Bitmap image) throws IOException {
         Mat cvImage = new Mat();
-        Utils.bitmapToMat(image,cvImage);
+        Utils.bitmapToMat(image, cvImage);
 
         saveBitmap(CVUtils.getBitmapFromMat(cvImage));
         // Create and apply edge mask
-         Mat cvEdgeMask = CVUtils.createCannyEdgeMask(cvImage);
-         Mat cvMaskedImage = CVUtils.applyMask(cvImage,cvEdgeMask);
+        Mat cvEdgeMask = CVUtils.createCannyEdgeMask(cvImage);
+        Mat cvMaskedImage = CVUtils.applyMask(cvImage, cvEdgeMask);
 
 
         // Binarize Image
@@ -214,15 +213,17 @@ public class MainActivity extends AppCompatActivity {
         // Erode Image for more clarity
         Mat cvDilatedImage = CVUtils.dilate(cvBinarizedImage);
 
+        Mat cvSmoothenedImage = CVUtils.smoothen(cvDilatedImage);
+
         // convert mat to bitmap
-        Bitmap result = CVUtils.getBitmapFromMat(cvDilatedImage);
+        Bitmap result = CVUtils.getBitmapFromMat(cvSmoothenedImage);
 
         // save bitmap
         saveBitmap(result);
 
-        Log.d(TAG, "processImage: bitmap config : "+ result.getConfig().toString());
+        Log.d(TAG, "processImage: bitmap config : " + result.getConfig().toString());
 
-        Bitmap resultARGB = result.copy(Bitmap.Config.ARGB_8888 , true);
+        Bitmap resultARGB = result.copy(Bitmap.Config.ARGB_8888, true);
 
         ivProcessed.setImageBitmap(resultARGB);
         this.processedImage = resultARGB;
