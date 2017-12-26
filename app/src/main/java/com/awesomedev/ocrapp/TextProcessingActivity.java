@@ -25,16 +25,13 @@ public class TextProcessingActivity extends AppCompatActivity {
         etDisplayPhone = findViewById(R.id.et_display_phone);
         etDisplayPincode = findViewById(R.id.et_display_pincode);
 
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Intent intent = getIntent();
         String detectedText = intent.getStringExtra(MainActivity.EXTRA_DETECTED_TEXT);
 
-
         String[] lines = detectedText.split("\\r?\\n");
         // process text
-
         processText(detectedText);
     }
 
@@ -91,10 +88,38 @@ public class TextProcessingActivity extends AppCompatActivity {
 
 
     private String getFirstLine(String[] lines , String text){
-        int i=-1;
-        while(lines[++i]==null);
-        lines[i] = null;
-        return lines[i];
+        String result = null;
+
+        for (int i=0 ; i < lines.length ; i++)
+            if (lines[i]!=null) {
+                result = lines[i];
+                lines[i] = null;
+                break;
+            }
+        return result;
+    }
+
+
+    private String matchRegexArrayWithFirstLine(String lines[] , String regexArray[]){
+        String result = null;
+        for (String regex : regexArray) {
+            Pattern pattern = Pattern.compile(regex);
+
+            for (int i=0 ; i<lines.length ; i++){
+                if (lines[i]!=null){
+                    Matcher matcher = pattern.matcher(lines[i]);
+                    if (matcher.find()){
+                        result = lines[i];
+                        lines[i] = null;
+                        return result;
+                    }
+                    else
+                        return result;
+                }
+            }
+        }
+
+        return result;
     }
 
     private String extractName(String[] lines, String text) {
@@ -131,11 +156,11 @@ public class TextProcessingActivity extends AppCompatActivity {
 
 
         // match optional parameters
-        result = matchRegexArray(lines, REGEX.OPTIONAL_EXPLICIT_ANNOTATIONS);
+        result = matchRegexArrayWithFirstLine(lines, REGEX.OPTIONAL_EXPLICIT_ANNOTATIONS);
         if (result != null)
             return result;
 
-        result = matchRegexArray(lines, REGEX.OPTIONAL_COMPANY_SUFFIX);
+        result = matchRegexArrayWithFirstLine(lines, REGEX.OPTIONAL_COMPANY_SUFFIX);
         if (result != null)
             return result;
 

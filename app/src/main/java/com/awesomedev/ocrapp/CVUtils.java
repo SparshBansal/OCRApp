@@ -47,7 +47,7 @@ public class CVUtils {
         Mat cvGrayscaled = new Mat();
 
         Imgproc.cvtColor(cvImg,cvGrayscaled,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,15,18);
+        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,21,12);
 
         return cvBinarized;
     }
@@ -60,7 +60,7 @@ public class CVUtils {
 
     public static Mat dilate(Mat cvImg){
         Mat cvDilatedImage = new Mat();
-        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(3,3)));
+        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(5,5)));
         return cvDilatedImage;
     }
 

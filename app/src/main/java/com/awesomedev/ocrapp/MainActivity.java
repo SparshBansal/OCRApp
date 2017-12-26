@@ -4,11 +4,11 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,10 +20,7 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,7 +28,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResponse {
 
     private static final String TAG = "MainActivity";
     private static final int REQUEST_TAKE_PHOTO = 1;
@@ -92,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         bProcessText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,15 +98,10 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Please capture a pic", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
                 Toast.makeText(MainActivity.this, "Detecting text", Toast.LENGTH_SHORT).show();
-                String text = tesseract.detectLines(processedImage);
-                Log.d(TAG, "onClick: " + text);
-
-                // start activity
-                Intent intent = new Intent(MainActivity.this, TextProcessingActivity.class);
-                intent.putExtra(MainActivity.EXTRA_DETECTED_TEXT, text);
-                startActivity(intent);
-
+                OCRTask ocrTask = new OCRTask(MainActivity.this , tesseract , MainActivity.this);
+                ocrTask.execute(processedImage);
                 return;
             }
         });
@@ -229,5 +222,15 @@ public class MainActivity extends AppCompatActivity {
         ivProcessed.setImageBitmap(resultARGB);
         this.processedImage = resultARGB;
         this.bProcessText.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onLinesDetected(String text) {
+
+        // start activity
+        Intent intent = new Intent(MainActivity.this, TextProcessingActivity.class);
+        intent.putExtra(MainActivity.EXTRA_DETECTED_TEXT, text);
+        startActivity(intent);
+
     }
 }
