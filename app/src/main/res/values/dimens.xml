@@ -2,4 +2,48 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin_double">32dp</dimen>
+    <dimen name="login_screen_logo_side">160dp</dimen>
+    <dimen name="app_bar_top_margin">0dp</dimen>
+    <dimen name="edit_text_margin">8dp</dimen>
+    <dimen name="et_text_size">18sp</dimen>
+    <dimen name="et_height">60dp</dimen>
+    <dimen name="btn_height">50dp</dimen>
+    <dimen name="btn_text_size">22sp</dimen>
+    <dimen name="dp_1_dimen">1dp</dimen>
+    <dimen name="dp_2_dimen">2dp</dimen>
+    <dimen name="dp_3_dimen">3dp</dimen>
+    <dimen name="dp_4_dimen">4dp</dimen>
+    <dimen name="dp_6_dimen">6dp</dimen>
+    <dimen name="dp_8_dimen">8dp</dimen>
+    <dimen name="dp_10_dimen">10dp</dimen>
+    <dimen name="dp_12_dimen">12dp</dimen>
+    <dimen name="dp_16_dimen">16dp</dimen>
+    <dimen name="dp_18_dimen">18dp</dimen>
+    <dimen name="dp_20_dimen">20dp</dimen>
+    <dimen name="dp_25_dimen">25dp</dimen>
+    <dimen name="dp_30_dimen">30dp</dimen>
+    <dimen name="dp_32_dimen">32dp</dimen>
+    <dimen name="dp_48_dimen">48dp</dimen>
+    <dimen name="dp_60_dimen">60dp</dimen>
+    <dimen name="tv_36_dimen">36sp</dimen>
+    <dimen name="tv_24_dimen">24sp</dimen>
+    <dimen name="tv_22_dimen">22sp</dimen>
+    <dimen name="tv_20_dimen">20sp</dimen>
+    <dimen name="tv_18_dimen">18sp</dimen>
+    <dimen name="tv_16_dimen">16sp</dimen>
+    <dimen name="tv_14_dimen">14sp</dimen>
+    <dimen name="tv_12_dimen">12sp</dimen>
+    <dimen name="tv_10_dimen">10sp</dimen>
+
+    <dimen name="drawer_width">240dp</dimen>
+    <dimen name="kyc_image_place_holder_height">200dp</dimen>
+    <dimen name="dp_5_dimen">5dp</dimen>
+    <dimen name="dp_15_dimen">15dp</dimen>
+
+    <dimen name="sp_15_dimen">15sp</dimen>
+
+    <dimen name="pie_chart_min_height">225dp</dimen>
+
+    <dimen name="et_dialog_height">50dp</dimen>
 </resources>

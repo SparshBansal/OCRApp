@@ -182,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "setPic: ImageActualWidth: " + String.valueOf(photoW) + " ; ImageActualHeight : " + String.valueOf(photoH));
 
         Bitmap image = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        ivOrg.setBackgroundColor(getColor(R.color.transparent));
         ivOrg.setImageBitmap(image);
 
         return image;

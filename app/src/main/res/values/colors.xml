@@ -1,6 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#24749e</color>
+    <color name="colorPrimaryDark">#1D5E80</color>
+    <color name="colorAccent">#000000</color>
+    <color name="black">#000000</color>
+    <color name="gray">#757575</color>
+    <color name="transparent">#00000000</color>
+    
+    <!-- Splash Screen -->
+    <color name="splash_bg">#24749e</color>
+
+    <!-- Login Screen -->
+    <color name="login_label">#444444</color>
+    <color name="login_button_bg">#24749e</color>
+    <color name="login_input_bg">#cccccc</color>
+
+    <color name="shadow">#cccccc</color>
+
+    <!--Profile Screen-->
+    <color name="profile_label">#4a4a4a</color>
+
+    <!-- Main Landing Screen -->
+    <color name="main_landing_off_shift_bg">#ce021b</color>
+
+    <!-- Forgot Pass Screen -->
+    <color name="forgot_pass_input_bg">#cccccc</color>
+
+    <!-- Generic Colors -->
+    <color name="divider_color">#cccccc</color>
+    <color name="task_detail_divider_color">#979797</color>
+    <color name="text_color">#444444</color>
+    <color name="text_color_blue">#36749d</color>
+
+    <color name="edit_text_hint_color">#999999</color>
+
+    <color name="triangleLabelColorPending">#f5a623</color>
+    <color name="triangleLabelColorDelivered">#53ca5e</color>
+    <color name="triangleLabelColorUndelivered">#ce1919</color>
+
+    <color name="dim_background">#50000000</color>
+    
+    <!--Background colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="last_sync_bg_color">#d8d8d8</color>
+
+    <!-- Navigation Drawer -->
+    <color name="drawer_item_text">#444444</color>
+    <color name="drawer_photo_border">#cccccc</color>
+    <color name="drawer_name_text">#24749e</color>
+    <color name="drawer_shift_button_bg">#36749d</color>
+
+    <color name="service_type_background_color">#8c8c8c</color>
+
+    <color name="disabled_white_btn_text_color">#8c8c8c</color>
+
+    <!-- Summary Colors -->
+    <color name="summary_light_blue">#DEF1F3</color>
+    <color name="summary_medium_blue">#27749E</color>
+    <color name="summary_dark_blue">#0D394F</color>
+
+
+    <color name="pickup_consignment_number_linearlayout_border_color">#4c4c4c</color>
+    <color name="pickup_gray">#999999</color>
+    <color name="pickup_consignment_list_item_normal_state">#ffffff</color>
+    <color name="pickup_consignment_list_item_selected_state">#DCDCDC</color>
+
+    <color name="ic_edit_tint">#4a4a4a</color>
+
 </resources>

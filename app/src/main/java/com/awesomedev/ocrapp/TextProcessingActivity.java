@@ -1,15 +1,11 @@
 package com.awesomedev.ocrapp;
 
 import android.content.Intent;
-import android.os.PatternMatcher;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.EditText;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,29 +13,35 @@ public class TextProcessingActivity extends AppCompatActivity {
 
 
     private static final String TAG = TextProcessingActivity.class.getSimpleName();
-    private EditText etDisplayText = null, etDisplayName=null, etDisplayPincode = null , etDisplayAddress = null , etDisplayPhone= null;
+    private EditText etDisplayName=null, etDisplayPincode = null , etDisplayAddress = null , etDisplayPhone= null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text_processing);
 
-        etDisplayText = findViewById(R.id.et_display_text);
         etDisplayName = findViewById(R.id.et_display_name);
         etDisplayAddress = findViewById(R.id.et_display_address);
         etDisplayPhone = findViewById(R.id.et_display_phone);
         etDisplayPincode = findViewById(R.id.et_display_pincode);
 
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         Intent intent = getIntent();
         String detectedText = intent.getStringExtra(MainActivity.EXTRA_DETECTED_TEXT);
 
-        // display the text
-        etDisplayText.setText(detectedText);
 
         String[] lines = detectedText.split("\\r?\\n");
         // process text
 
         processText(detectedText);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return super.onSupportNavigateUp();
     }
 
     private String[] cleanText(String text) {
@@ -88,6 +90,13 @@ public class TextProcessingActivity extends AppCompatActivity {
     }
 
 
+    private String getFirstLine(String[] lines , String text){
+        int i=-1;
+        while(lines[++i]==null);
+        lines[i] = null;
+        return lines[i];
+    }
+
     private String extractName(String[] lines, String text) {
         // Heuristic name matching
 
@@ -120,6 +129,7 @@ public class TextProcessingActivity extends AppCompatActivity {
             }
         }
 
+
         // match optional parameters
         result = matchRegexArray(lines, REGEX.OPTIONAL_EXPLICIT_ANNOTATIONS);
         if (result != null)
@@ -129,7 +139,7 @@ public class TextProcessingActivity extends AppCompatActivity {
         if (result != null)
             return result;
 
-        result = lines[0];
+        result = getFirstLine(lines,text);
         return result;
     }
 
@@ -143,7 +153,6 @@ public class TextProcessingActivity extends AppCompatActivity {
                 Matcher matcher = pattern.matcher(lines[i]);
                 if (matcher.find()) {
                     result = matcher.group(0);
-                    lines[i] = null;
                     break;
                 }
             }
@@ -202,6 +211,5 @@ public class TextProcessingActivity extends AppCompatActivity {
         etDisplayPincode.setText(pinCode);
         etDisplayAddress.setText(address);
         etDisplayPhone.setText(phoneNumber);
-
     }
 }

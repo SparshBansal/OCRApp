@@ -6,66 +6,83 @@
     android:layout_height="match_parent"
     tools:context="com.awesomedev.ocrapp.TextProcessingActivity">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/dp_25_dimen"
+        android:layout_marginRight="@dimen/dp_25_dimen"
+        android:orientation="vertical">
 
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_16_dimen"
+            android:text="@string/ocr_name"
+            android:textSize="@dimen/tv_16_dimen"
+            android:textStyle="bold" />
+
+
+        <EditText
+            android:id="@+id/et_display_name"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="16dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="full text" />
-
-            <EditText
-                android:id="@+id/et_display_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Name" />
-
-            <EditText
-                android:id="@+id/et_display_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Address" />
-
-            <EditText
-                android:id="@+id/et_display_address"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Pincode" />
-
-            <EditText
-                android:id="@+id/et_display_pincode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_edge"
+            android:hint="Name"
+            android:padding="@dimen/dp_12_dimen" />
 
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Phone Number" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_16_dimen"
+            android:text="@string/ocr_address"
+            android:textSize="@dimen/tv_16_dimen"
+            android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/et_display_phone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-    </ScrollView>
+
+        <EditText
+            android:id="@+id/et_display_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_edge"
+            android:hint="Address"
+            android:padding="@dimen/dp_12_dimen" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_16_dimen"
+            android:text="@string/ocr_pincode"
+            android:textSize="@dimen/tv_16_dimen"
+            android:textStyle="bold" />
+
+
+        <EditText
+            android:id="@+id/et_display_pincode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_edge"
+            android:hint="Pincode"
+            android:padding="@dimen/dp_12_dimen" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_16_dimen"
+            android:text="@string/ocr_phone"
+            android:textSize="@dimen/tv_16_dimen"
+            android:textStyle="bold" />
+
+
+        <EditText
+            android:id="@+id/et_display_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_edge"
+            android:hint="Phone"
+            android:padding="@dimen/dp_12_dimen" />
+
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

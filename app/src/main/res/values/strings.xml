@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">OCRApp</string>
+    <string name="awb_number_static_string">AWB Number*</string>
+    <string name="ocr_name">Name</string>
+    <string name="ocr_address">Address</string>
+    <string name="ocr_pincode">Pincode</string>
+    <string name="ocr_phone">Contact Number</string>
 </resources>

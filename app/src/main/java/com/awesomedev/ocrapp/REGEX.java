@@ -7,8 +7,8 @@ package com.awesomedev.ocrapp;
 public class REGEX {
 
     static final String MISC_CHAR_REGEX = "[^a-zA-Z\\d\\s]";
-    static final String PINCODE_REGEX = "\\d{5,6}";
-    static final String PHONE_NUMBER_REGEX = "\\d{6,}";
+    static final String PINCODE_REGEX = "\\d{5,6}\\b";
+    static final String PHONE_NUMBER_REGEX = "\\d{7,}";
 
     static final String EXPLICIT_MENTIONS[] = {
             "(?i)\\bto\\b",

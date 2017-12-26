@@ -6,27 +6,91 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
 
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.awesomedev.ocrapp.MainActivity">
 
-    <ImageView
-        android:id="@+id/iv_original"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
 
-    <ImageView
-        android:id="@+id/iv_processed"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp_25_dimen"
+        android:layout_marginRight="@dimen/dp_25_dimen"
+        android:layout_marginTop="@dimen/dp_16_dimen"
+        android:text="@string/awb_number_static_string"
+        android:textSize="@dimen/tv_18_dimen"
+        android:textStyle="bold" />
 
-    <Button
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Process Text"
-        android:id="@+id/b_process_text"></Button>
+        android:layout_marginLeft="@dimen/dp_25_dimen"
+        android:layout_marginRight="@dimen/dp_25_dimen"
+        android:layout_marginTop="@dimen/dp_4_dimen"
+        android:background="@drawable/rounded_edge"
+        android:orientation="horizontal"
+        android:weightSum="4">
+
+        <EditText
+            android:id="@+id/et_scan_awb_number"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="4"
+            android:background="@android:color/transparent"
+            android:hint="Type/Scan AWB number"
+            android:padding="@dimen/dp_12_dimen" />
+
+        <ImageView
+            android:id="@+id/iv_scan_awb_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingEnd="@dimen/dp_12_dimen"
+            android:paddingStart="@dimen/dp_12_dimen"
+            android:src="@drawable/ic_scan" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_marginLeft="@dimen/dp_25_dimen"
+        android:layout_marginRight="@dimen/dp_25_dimen"
+        android:layout_weight="0.9">
+
+        <ImageView
+            android:id="@+id/iv_original"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="@dimen/dp_8_dimen"
+            android:layout_marginTop="@dimen/dp_8_dimen"
+            android:layout_weight="1"
+            android:background="@color/task_detail_divider_color" />
+
+        <ImageView
+            android:id="@+id/iv_processed"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="@dimen/dp_8_dimen"
+            android:layout_marginTop="@dimen/dp_8_dimen"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1">
+
+        <Button
+            android:id="@+id/b_process_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/normal_button_selector"
+            android:text="Read Text"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/tv_18_dimen" />
+
+    </RelativeLayout>
 </LinearLayout>

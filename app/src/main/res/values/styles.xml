@@ -8,4 +8,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+<!--    <style name="TextAppearance.Font.HelveticaNeue" parent="android:TextAppearance">
+        <item name="fontPath">fonts/HelveticaNeue/HelveticaNeue-Medium.ttf</item>
+    </style>
+
+    <style name="TextAppearance.Font.HelveticaNeueBold" parent="android:TextAppearance">
+        <item name="fontPath">fonts/HelveticaNeue/HelveticaNeue-Bold.ttf</item>
+    </style>-->
+
 </resources>
