@@ -197,7 +197,6 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         Utils.bitmapToMat(image, cvImage);
 
         // grayscale the image
-        Imgproc.cvtColor(cvImage,cvImage , Imgproc.COLOR_RGB2GRAY);
         saveBitmap(CVUtils.getBitmapFromMat(cvImage));
         // Create and apply edge mask
         Mat cvSmoothenedImage = CVUtils.smoothen(cvImage);
@@ -211,11 +210,12 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         Mat cvBinarizedImage = CVUtils.binarize(cvMaskedImage);
 
         // Erode Image for more clarity
-        Mat cvDilatedImage = CVUtils.dilate(cvBinarizedImage);
-
+        Mat cvErodedImage = CVUtils.erode(cvBinarizedImage);
+        Mat cvDilatedImage = CVUtils.dilate(cvErodedImage);
+        cvErodedImage = CVUtils.erode(cvDilatedImage);
 
         // convert mat to bitmap
-        Bitmap result = CVUtils.getBitmapFromMat(cvDilatedImage);
+        Bitmap result = CVUtils.getBitmapFromMat(cvErodedImage);
 
         // save bitmap
         saveBitmap(result);

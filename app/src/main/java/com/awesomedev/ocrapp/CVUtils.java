@@ -59,9 +59,15 @@ public class CVUtils {
         return cvSmoothenedImage;
     }
 
+    public static Mat erode(Mat cvImg){
+        Mat cvErodedImage= new Mat();
+        Imgproc.erode(cvImg,cvErodedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(4,4)));
+        return cvErodedImage;
+    }
+
     public static Mat dilate(Mat cvImg){
         Mat cvDilatedImage = new Mat();
-        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(4,4)));
+        Imgproc.dilate(cvImg, cvDilatedImage, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4)));
         return cvDilatedImage;
     }
 
