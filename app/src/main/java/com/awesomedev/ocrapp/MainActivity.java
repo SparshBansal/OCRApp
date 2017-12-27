@@ -21,6 +21,7 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -195,9 +196,14 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         Mat cvImage = new Mat();
         Utils.bitmapToMat(image, cvImage);
 
+        // grayscale the image
+        Imgproc.cvtColor(cvImage,cvImage , Imgproc.COLOR_RGB2GRAY);
         saveBitmap(CVUtils.getBitmapFromMat(cvImage));
         // Create and apply edge mask
-        Mat cvEdgeMask = CVUtils.createCannyEdgeMask(cvImage);
+        Mat cvSmoothenedImage = CVUtils.smoothen(cvImage);
+        Mat cvEdgeMask = CVUtils.createCannyEdgeMask(cvSmoothenedImage);
+
+        saveBitmap(CVUtils.getBitmapFromMat(cvEdgeMask));
         Mat cvMaskedImage = CVUtils.applyMask(cvImage, cvEdgeMask);
 
 
@@ -207,10 +213,9 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         // Erode Image for more clarity
         Mat cvDilatedImage = CVUtils.dilate(cvBinarizedImage);
 
-        Mat cvSmoothenedImage = CVUtils.smoothen(cvDilatedImage);
 
         // convert mat to bitmap
-        Bitmap result = CVUtils.getBitmapFromMat(cvSmoothenedImage);
+        Bitmap result = CVUtils.getBitmapFromMat(cvDilatedImage);
 
         // save bitmap
         saveBitmap(result);

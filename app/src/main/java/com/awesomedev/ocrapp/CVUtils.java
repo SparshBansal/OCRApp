@@ -36,10 +36,11 @@ public class CVUtils {
     // helper method to create an edge mask (Canny Edge Detector)
     public static Mat createCannyEdgeMask(Mat cvImg){
         Mat cvEdgeMap= new Mat();
-        Imgproc.Canny(cvImg,cvEdgeMap,80,100);
+        Imgproc.Canny(cvImg,cvEdgeMap,50,100);
         Core.bitwise_not(cvEdgeMap,cvEdgeMap);
         return cvEdgeMap;
     }
+
 
     // helper method to binarize image
     public static Mat binarize(Mat cvImg){
@@ -47,7 +48,7 @@ public class CVUtils {
         Mat cvGrayscaled = new Mat();
 
         Imgproc.cvtColor(cvImg,cvGrayscaled,Imgproc.COLOR_RGB2GRAY);
-        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,21,12);
+        Imgproc.adaptiveThreshold(cvGrayscaled,cvBinarized,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,41,12);
 
         return cvBinarized;
     }
@@ -60,7 +61,7 @@ public class CVUtils {
 
     public static Mat dilate(Mat cvImg){
         Mat cvDilatedImage = new Mat();
-        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(5,5)));
+        Imgproc.erode(cvImg, cvDilatedImage,Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(4,4)));
         return cvDilatedImage;
     }
 

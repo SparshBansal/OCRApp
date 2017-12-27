@@ -44,8 +44,6 @@ public class TextProcessingActivity extends AppCompatActivity {
     private String[] cleanText(String text) {
         // remove all misc chars
 
-        text = text.replaceAll(REGEX.MISC_CHAR_REGEX, "");
-
         String lines[] = text.split("\\r?\\n");
 
         for (int i = 0; i < lines.length; i++) {
