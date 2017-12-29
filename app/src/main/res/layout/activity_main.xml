@@ -77,20 +77,34 @@
 
     </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:orientation="horizontal"
         android:layout_weight="0.1">
 
         <Button
             android:id="@+id/b_process_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_alignParentBottom="true"
             android:background="@drawable/normal_button_selector"
             android:text="Read Text"
             android:textColor="@android:color/white"
             android:textSize="@dimen/tv_18_dimen" />
 
-    </RelativeLayout>
+
+        <Button
+            android:id="@+id/b_plot_graph"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/normal_button_selector"
+            android:text="Plot Contours"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/tv_18_dimen" />
+
+    </LinearLayout>
 </LinearLayout>

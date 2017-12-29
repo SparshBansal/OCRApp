@@ -6,6 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.EditText;
 
+import com.googlecode.leptonica.android.Binarize;
+import com.googlecode.leptonica.android.ReadFile;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

@@ -14,7 +14,6 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 
 public class OCRTask extends AsyncTask<Bitmap , Void, String> {
 
-
     private ProgressDialog progressDialog;
     private Context context;
     private Tesseract tesseract;
