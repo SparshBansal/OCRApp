@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_margin="@dimen/dp_16_dimen"
     tools:context="com.awesomedev.ocrapp.ContourPlotActivity">
 
-</android.support.constraint.ConstraintLayout>
+
+    <com.github.mikephil.charting.charts.ScatterChart
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/chart"
+        ></com.github.mikephil.charting.charts.ScatterChart>
+</LinearLayout>

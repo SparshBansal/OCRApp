@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -47,6 +48,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -59,7 +61,8 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
     private static final String TAG = "MainActivity";
     private static final int REQUEST_TAKE_PHOTO = 1;
     public static final String EXTRA_DETECTED_TEXT = "DETECTED TEXT";
-    private static final int READ_EXTERNAL_STORAGE_PERMISSION =  99;
+    private static final int READ_EXTERNAL_STORAGE_PERMISSION = 99;
+    public static final String EXTRA_CONTOUR_FILE_PATH = "CONTOUR_FILE_PATH";
 
 
     static {
@@ -71,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
     }
 
     private ImageView ivOrg = null, ivProcessed = null;
-    private Button bProcessText = null,bPlotContours=null;
+    private Button bProcessText = null, bPlotContours = null;
 
     private String mCurrentPhotoPath;
     private Tesseract tesseract;
@@ -80,6 +83,8 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
 
     private Uri photoUri = null;
     private String mCurrentLogFilePath;
+
+    List<MatOfPoint> contours = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
                     launchFilePicker();
                     return;
                 }
-                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},READ_EXTERNAL_STORAGE_PERMISSION);
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, READ_EXTERNAL_STORAGE_PERMISSION);
             }
         });
 
@@ -121,35 +126,55 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
                 }
 
                 Toast.makeText(MainActivity.this, "Detecting text", Toast.LENGTH_SHORT).show();
-                OCRTask ocrTask = new OCRTask(MainActivity.this , tesseract , MainActivity.this);
+                OCRTask ocrTask = new OCRTask(MainActivity.this, tesseract, MainActivity.this);
                 ocrTask.execute(processedImage);
                 return;
             }
         });
-/*
+
         bPlotContours.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // plot contours
-                if (mCurrentLogFilePath == null)
-                    return;
+                if (contours != null) {
 
-                File logFile = new File(mCurrentLogFilePath);
-                try{
+                    File contourFile = null;
+                    try {
+                        contourFile = createTextFile();
+                        FileWriter writer = new FileWriter(contourFile);
 
-                    InputStream inputStream = new FileInputStream(mCurrentLogFilePath);
-                    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+                        // find length and breadth
+                        for (MatOfPoint contour : contours) {
+                            RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
+                            Point[] vertices = new Point[4];
 
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                            rect.points(vertices);
+
+                            double length = euclideanDistance(vertices[0].x, vertices[0].y, vertices[1].x, vertices[1].y);
+                            double breadth = euclideanDistance(vertices[1].x, vertices[1].y, vertices[2].x, vertices[2].y);
+                            writer.append(String.valueOf(length) + " " + String.valueOf(breadth) + "\n");
+                        }
+
+                        writer.flush();
+                        writer.close();
+
+                        Intent intent = new Intent(MainActivity.this, ContourPlotActivity.class);
+                        intent.putExtra(EXTRA_CONTOUR_FILE_PATH, contourFile.getAbsolutePath());
+                        startActivity(intent);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        });*/
+        });
     }
 
-    private void launchFilePicker(){
+    private double euclideanDistance(double x1, double y1, double x2, double y2) {
+        double dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        return dist;
+    }
+
+    private void launchFilePicker() {
         ArrayList<String> selectedFiles = new ArrayList<>();
         FilePickerBuilder.getInstance().setSelectedFiles(selectedFiles).setActivityTheme(R.style.AppTheme).pickPhoto(MainActivity.this);
     }
@@ -171,6 +196,21 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         return image;
     }
 
+    private File createTextFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String textFileName = "CONTOUR_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        File textFile = File.createTempFile(
+                textFileName,  /* prefix */
+                ".txt",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        return textFile;
+    }
+
     // helper method to launch crop activity
     private void launchCropActivity(Uri imageUri) {
         CropImage.activity().setGuidelines(CropImageView.Guidelines.ON);
@@ -179,12 +219,11 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
+        switch (requestCode) {
             case READ_EXTERNAL_STORAGE_PERMISSION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     launchFilePicker();
-                }
-                else{
+                } else {
                     Toast.makeText(this, "Need permission to read external storage", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -218,12 +257,12 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
             }
         }
 
-        if (requestCode == FilePickerConst.REQUEST_CODE_PHOTO && resultCode == RESULT_OK){
+        if (requestCode == FilePickerConst.REQUEST_CODE_PHOTO && resultCode == RESULT_OK) {
             ArrayList<String> photoPaths = new ArrayList<>();
             photoPaths.addAll(data.getStringArrayListExtra(FilePickerConst.KEY_SELECTED_MEDIA));
 
 
-            if (photoPaths.size() > 0){
+            if (photoPaths.size() > 0) {
                 mCurrentPhotoPath = photoPaths.get(0);
                 photoUri = Uri.parse(mCurrentPhotoPath);
 
@@ -275,9 +314,9 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
     private void logContourPoints(List<MatOfPoint> contours) throws IOException {
         // log contour points
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String logFileName= "DATA_" + timeStamp + "_";
+        String logFileName = "DATA_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-        File logFile= File.createTempFile(
+        File logFile = File.createTempFile(
                 logFileName,  /* prefix */
                 ".txt",         /* suffix */
                 storageDir      /* directory */
@@ -286,13 +325,13 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         this.mCurrentLogFilePath = logFile.getAbsolutePath();
         FileWriter writer = new FileWriter(logFile);
 
-        for (MatOfPoint contour : contours){
+        for (MatOfPoint contour : contours) {
             Point[] points = new Point[4];
             RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contour.toArray()));
 
             rect.points(points);
 
-            for (Point point: points){
+            for (Point point : points) {
                 writer.append(String.valueOf(point.x) + " " + String.valueOf(point.y) + " ");
             }
             writer.append('\n');
@@ -307,30 +346,45 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         saveBitmap(CVUtils.getBitmapFromMat(cvImage));
         // Create and apply edge mask
 
+        CVTextBox cvMserImage = CVUtils.mserTextDetection(cvImage);
+
         // Binarize Image
         Mat cvBinarizedImage = CVUtils.binarize(cvImage);
 
-        // Remove noise
-        Mat noiselessImage  = CVUtils.reduceNoise(cvBinarizedImage);
-        noiselessImage = CVUtils.reduceNoise(noiselessImage);
-        // Erode Image for more clarity
-        Mat cvErodedImage = CVUtils.erode(noiselessImage,4);
-        Mat cvDilatedImage = CVUtils.dilate(cvErodedImage,4);
 
+        // remove anything that lies outside the text boxes
+        for (int y=0 ; y < cvBinarizedImage.height() ; y++){
+            for (int x=0 ; x < cvBinarizedImage.width(); x++){
+                boolean liesInside = false;
+                for (Pair<Point,Point> rect : cvMserImage.rects){
+                    if (x >= rect.first.x && x <= rect.second.x && y >= rect.first.y && y <= rect.second.y){
+                        liesInside = true;
+                    }
+                }
+
+                if (!liesInside){
+                    double[] data = cvBinarizedImage.get(y,x);
+                    data[0] = 255;
+                    cvBinarizedImage.put(y,x,data);
+                }
+            }
+        }
+
+        Mat noiselessImage = CVUtils.reduceNoise(cvBinarizedImage);
 
         // Find contours
-        List<MatOfPoint> contours = CVUtils.findContours(cvDilatedImage);
+        contours = CVUtils.findContours(noiselessImage);
 
         logContourPoints(contours);
 
         Mat cvContourImage = new Mat();
-        cvDilatedImage.copyTo(cvContourImage);
+        noiselessImage.copyTo(cvContourImage);
 
         Mat cvContourMap = CVUtils.drawContours(cvContourImage, contours);
 
         // convert mat to bitmap
         // cvErodedImage = CVUtils.erode(cvDilatedImage, 3);
-        Bitmap result = CVUtils.getBitmapFromMat(cvDilatedImage);
+        Bitmap result = CVUtils.getBitmapFromMat(cvContourMap);
 
         // save bitmap
         saveBitmap(result);

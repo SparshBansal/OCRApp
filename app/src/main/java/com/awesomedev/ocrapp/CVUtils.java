@@ -1,16 +1,22 @@
 package com.awesomedev.ocrapp;
 
 import android.graphics.Bitmap;
+import android.util.Pair;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -117,4 +123,76 @@ public class CVUtils {
         return cvDilatedImage;
     }
 
+    public static CVTextBox mserTextDetection(Mat mat){
+        Mat imageMat2 = new Mat();
+        Imgproc.cvtColor(mat , imageMat2, Imgproc.COLOR_RGB2GRAY);
+        Mat mRgba = mat;
+        Mat mGray = imageMat2;
+
+        CVTextBox textBox = new CVTextBox();
+
+        Scalar CONTOUR_COLOR = new Scalar(1, 255, 128, 0);
+        MatOfKeyPoint keyPoint = new MatOfKeyPoint();
+        List<KeyPoint> listPoint = new ArrayList<>();
+        KeyPoint kPoint = new KeyPoint();
+        Mat mask = Mat.zeros(mGray.size(), CvType.CV_8UC1);
+        int rectanx1;
+        int rectany1;
+        int rectanx2;
+        int rectany2;
+
+        Scalar zeros = new Scalar(0,0,0);
+        List<MatOfPoint> contour2 = new ArrayList<>();
+        Mat kernel = new Mat(1, 50, CvType.CV_8UC1, Scalar.all(255));
+        Mat morByte = new Mat();
+        Mat hierarchy = new Mat();
+
+        Rect rectan3 = new Rect();
+        int imgSize = mRgba.height() * mRgba.width();
+
+        if(true){
+            FeatureDetector detector = FeatureDetector.create(FeatureDetector.MSER);
+            detector.detect(mGray, keyPoint);
+            listPoint = keyPoint.toList();
+            for(int ind = 0; ind < listPoint.size(); ++ind){
+                kPoint = listPoint.get(ind);
+                rectanx1 = (int ) (kPoint.pt.x - 0.5 * kPoint.size);
+                rectany1 = (int ) (kPoint.pt.y - 0.5 * kPoint.size);
+
+                rectanx2 = (int) (kPoint.size);
+                rectany2 = (int) (kPoint.size);
+                if(rectanx1 <= 0){
+                    rectanx1 = 1;
+                }
+                if(rectany1 <= 0){
+                    rectany1 = 1;
+                }
+                if((rectanx1 + rectanx2) > mGray.width()){
+                    rectanx2 = mGray.width() - rectanx1;
+                }
+                if((rectany1 + rectany2) > mGray.height()){
+                    rectany2 = mGray.height() - rectany1;
+                }
+                Rect rectant = new Rect(rectanx1, rectany1, rectanx2, rectany2);
+                Mat roi = new Mat(mask, rectant);
+                roi.setTo(CONTOUR_COLOR);
+            }
+            Imgproc.morphologyEx(mask, morByte, Imgproc.MORPH_DILATE, kernel);
+            Imgproc.findContours(morByte, contour2, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+            List<Pair<Point,Point>> rects = new ArrayList<>();
+            for(int i = 0; i<contour2.size(); ++i){
+                rectan3 = Imgproc.boundingRect(contour2.get(i));
+                if(rectan3.area() > 0.5 * imgSize || rectan3.area()<100 || rectan3.width / rectan3.height < 2){
+                    Mat roi = new Mat(morByte, rectan3);
+                    roi.setTo(zeros);
+                }else{
+                    Imgproc.rectangle(mRgba, rectan3.br(), rectan3.tl(), CONTOUR_COLOR);
+                    rects.add(new Pair<Point, Point>(rectan3.tl() , rectan3.br()));
+                }
+            }
+            textBox.mBitmap = mRgba;
+            textBox.rects = rects;
+        }
+        return textBox;
+    }
 }
