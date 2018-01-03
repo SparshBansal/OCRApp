@@ -1,21 +1,13 @@
 package com.awesomedev.ocrapp;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -25,7 +17,6 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -33,33 +24,17 @@ import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import droidninja.filepicker.FilePickerActivity;
-import droidninja.filepicker.FilePickerBuilder;
-import droidninja.filepicker.FilePickerConst;
-
-public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResponse {
+public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResponse,ImageProcessingTask.OnImageProcessedListener {
 
     private static final String TAG = "MainActivity";
-    private static final int REQUEST_TAKE_PHOTO = 1;
+    private static final int REQUEST_TAKE_PHOTO = 98;
     public static final String EXTRA_DETECTED_TEXT = "DETECTED TEXT";
     private static final int READ_EXTERNAL_STORAGE_PERMISSION = 99;
     public static final String EXTRA_CONTOUR_FILE_PATH = "CONTOUR_FILE_PATH";
@@ -106,12 +81,7 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
 
             @Override
             public void onClick(View v) {
-                int permissionCheck = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE);
-                if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                    launchFilePicker();
-                    return;
-                }
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, READ_EXTERNAL_STORAGE_PERMISSION);
+                launchCropActivity();
             }
         });
 
@@ -139,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
 
                     File contourFile = null;
                     try {
-                        contourFile = createTextFile();
+                        contourFile = FileUtils.createTextFile(MainActivity.this);
                         FileWriter writer = new FileWriter(contourFile);
 
                         // find length and breadth
@@ -174,104 +144,32 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         return dist;
     }
 
-    private void launchFilePicker() {
-        ArrayList<String> selectedFiles = new ArrayList<>();
-        FilePickerBuilder.getInstance().setSelectedFiles(selectedFiles).setActivityTheme(R.style.AppTheme).pickPhoto(MainActivity.this);
-    }
-
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
-    private File createTextFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String textFileName = "CONTOUR_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-        File textFile = File.createTempFile(
-                textFileName,  /* prefix */
-                ".txt",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        return textFile;
-    }
-
     // helper method to launch crop activity
-    private void launchCropActivity(Uri imageUri) {
+    private void launchCropActivity() {
         CropImage.activity().setGuidelines(CropImageView.Guidelines.ON);
-        CropImage.activity(imageUri).start(this);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case READ_EXTERNAL_STORAGE_PERMISSION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    launchFilePicker();
-                } else {
-                    Toast.makeText(this, "Need permission to read external storage", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-        }
+        CropImage.activity().start(this);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Toast.makeText(this, "Picture Capture Successful", Toast.LENGTH_SHORT).show();
 
-            // try image processing
-            // launch crop activity
-            launchCropActivity(photoUri);
-        } else {
-            Toast.makeText(this, "Picture Capture Failed", Toast.LENGTH_SHORT).show();
-        }
+        switch (requestCode) {
 
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
-            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            case CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE: {
+                if (resultCode == RESULT_OK) {
+                    CropImage.ActivityResult result = CropImage.getActivityResult(data);
 
-            photoUri = result.getUri();
-            mCurrentPhotoPath = photoUri.getPath();
+                    photoUri = result.getUri();
+                    mCurrentPhotoPath = photoUri.getPath();
 
-            Bitmap orgPic = setPic();
-            try {
-                processImage(orgPic);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (requestCode == FilePickerConst.REQUEST_CODE_PHOTO && resultCode == RESULT_OK) {
-            ArrayList<String> photoPaths = new ArrayList<>();
-            photoPaths.addAll(data.getStringArrayListExtra(FilePickerConst.KEY_SELECTED_MEDIA));
-
-
-            if (photoPaths.size() > 0) {
-                mCurrentPhotoPath = photoPaths.get(0);
-                photoUri = Uri.parse(mCurrentPhotoPath);
-
-                Bitmap orgPic = setPic();
-                try {
-                    processImage(orgPic);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    Bitmap orgPic = setPic();
+                    try {
+                        processImage(orgPic);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+                break;
             }
         }
     }
@@ -299,16 +197,6 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         ivOrg.setImageBitmap(image);
 
         return image;
-    }
-
-    private void saveBitmap(Bitmap bitmap) throws IOException {
-        File photoFile = createImageFile();
-        FileOutputStream outputStream = new FileOutputStream(photoFile);
-
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-        outputStream.flush();
-        outputStream.close();
-
     }
 
     private void logContourPoints(List<MatOfPoint> contours) throws IOException {
@@ -339,66 +227,10 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
     }
 
     private void processImage(Bitmap image) throws IOException {
-        Mat cvImage = new Mat();
-        Utils.bitmapToMat(image, cvImage);
-
-        // grayscale the image
-        saveBitmap(CVUtils.getBitmapFromMat(cvImage));
-        // Create and apply edge mask
-
-        CVTextBox cvMserImage = CVUtils.mserTextDetection(cvImage);
-
-        // Binarize Image
-        Mat cvBinarizedImage = CVUtils.binarize(cvImage);
-
-
-        // remove anything that lies outside the text boxes
-        for (int y=0 ; y < cvBinarizedImage.height() ; y++){
-            for (int x=0 ; x < cvBinarizedImage.width(); x++){
-                boolean liesInside = false;
-                for (Pair<Point,Point> rect : cvMserImage.rects){
-                    if (x >= rect.first.x && x <= rect.second.x && y >= rect.first.y && y <= rect.second.y){
-                        liesInside = true;
-                    }
-                }
-
-                if (!liesInside){
-                    double[] data = cvBinarizedImage.get(y,x);
-                    data[0] = 255;
-                    cvBinarizedImage.put(y,x,data);
-                }
-            }
-        }
-
-        Mat noiselessImage = CVUtils.reduceNoise(cvBinarizedImage);
-
-        // Find contours
-        contours = CVUtils.findContours(noiselessImage);
-
-        logContourPoints(contours);
-
-        Mat cvContourImage = new Mat();
-        noiselessImage.copyTo(cvContourImage);
-
-        Mat cvContourMap = CVUtils.drawContours(cvContourImage, contours);
-
-        // convert mat to bitmap
-        // cvErodedImage = CVUtils.erode(cvDilatedImage, 3);
-        Bitmap result = CVUtils.getBitmapFromMat(cvContourMap);
-
-        // save bitmap
-        saveBitmap(result);
-
-        Log.d(TAG, "processImage: bitmap config : " + result.getConfig().toString());
-
-        Bitmap resultARGB = result.copy(Bitmap.Config.ARGB_8888, true);
-
-        ivProcessed.setImageBitmap(resultARGB);
-        this.processedImage = resultARGB;
-
-        this.bProcessText.setVisibility(View.VISIBLE);
-        this.bPlotContours.setVisibility(View.VISIBLE);
-
+        // Kick of the Async Task
+        ImageProcessingTask ipTask = new ImageProcessingTask(MainActivity.this);
+        ipTask.setOnImageProcessedListener(this);
+        ipTask.execute(image);
     }
 
     @Override
@@ -408,6 +240,41 @@ public class MainActivity extends AppCompatActivity implements OCRTask.AsyncResp
         Intent intent = new Intent(MainActivity.this, TextProcessingActivity.class);
         intent.putExtra(MainActivity.EXTRA_DETECTED_TEXT, text);
         startActivity(intent);
+
+    }
+
+    @Override
+    public void onImageProcessed(Mat cleanedImage) {
+
+        try {
+            contours = CVUtils.findContours(cleanedImage);
+            logContourPoints(contours);
+
+            Mat cvContourImage = new Mat();
+            cleanedImage.copyTo(cvContourImage);
+
+            Mat cvContourMap = CVUtils.drawContours(cvContourImage, contours);
+
+            // convert mat to bitmap
+            // cvErodedImage = CVUtils.erode(cvDilatedImage, 3);
+            Bitmap result = CVUtils.getBitmapFromMat(cleanedImage);
+
+            // save bitmap
+            FileUtils.saveBitmap(result , MainActivity.this);
+
+            Log.d(TAG, "processImage: bitmap config : " + result.getConfig().toString());
+
+            Bitmap resultARGB = result.copy(Bitmap.Config.ARGB_8888, true);
+
+            ivProcessed.setImageBitmap(resultARGB);
+            this.processedImage = resultARGB;
+
+            this.bProcessText.setVisibility(View.VISIBLE);
+            this.bPlotContours.setVisibility(View.VISIBLE);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 }
