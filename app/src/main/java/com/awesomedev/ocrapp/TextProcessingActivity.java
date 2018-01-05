@@ -46,6 +46,7 @@ public class TextProcessingActivity extends AppCompatActivity {
 
     private String[] cleanText(String text) {
         // remove all misc chars
+        text = text.replaceAll(REGEX.MISC_CHAR_REGEX, "");
 
         String lines[] = text.split("\\r?\\n");
 
@@ -178,7 +179,8 @@ public class TextProcessingActivity extends AppCompatActivity {
             if (lines[i] != null) {
                 Matcher matcher = pattern.matcher(lines[i]);
                 if (matcher.find()) {
-                    result = matcher.group(0);
+                    result = matcher.group(2);
+                    lines[i] = null;
                     break;
                 }
             }
@@ -190,12 +192,13 @@ public class TextProcessingActivity extends AppCompatActivity {
         Pattern pattern = Pattern.compile(REGEX.PHONE_NUMBER_REGEX);
         String result = null;
 
-        for (int i = 0; i < lines.length; i++) {
+        for (int i = lines.length ; i >= 0; i--){
             if (lines[i] != null) {
                 Matcher matcher = pattern.matcher(lines[i]);
                 if (matcher.find()) {
                     result = matcher.group(0);
                     lines[i] = null;
+                    return result;
                 }
             }
         }
