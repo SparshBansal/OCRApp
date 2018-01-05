@@ -56,7 +56,10 @@ public class ImageProcessingTask extends AsyncTask<Bitmap, Void, Mat> {
             for (int x = 0; x < cvBinarizedImage.width(); x++) {
                 boolean liesInside = false;
                 for (Pair<Point, Point> rect : cvMserImage.rects) {
-                    if (x >= rect.first.x && x <= rect.second.x && y >= rect.first.y && y <= rect.second.y) {
+
+                    int paddingW = (int) (Math.abs(rect.second.x - rect.first.x)/8);
+                    int paddingH = (int) (Math.abs(rect.second.y - rect.first.y)/16);
+                    if (x >= rect.first.x - paddingW && x <= rect.second.x + paddingW && y >= rect.first.y - paddingH && y <= rect.second.y + paddingH) {
                         liesInside = true;
                     }
                 }
@@ -70,7 +73,9 @@ public class ImageProcessingTask extends AsyncTask<Bitmap, Void, Mat> {
         }
 
         Mat noiselessImage = CVUtils.reduceNoise(cvBinarizedImage);
-        return noiselessImage;
+
+        Mat cvDeskewedImage = CVUtils.deskewImage(noiselessImage);
+        return cvDeskewedImage;
 
     }
 

@@ -1,6 +1,7 @@
 package com.awesomedev.ocrapp;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 import android.util.Pair;
 
 import org.opencv.android.Utils;
@@ -29,6 +30,7 @@ import java.util.List;
 
 public class CVUtils {
 
+    private static final String TAG = CVUtils.class.getSimpleName();
 
     public static Bitmap getBitmapFromMat(Mat cvImg){
         Bitmap result = Bitmap.createBitmap(cvImg.cols() , cvImg.rows() , Bitmap.Config.RGB_565);
@@ -123,6 +125,44 @@ public class CVUtils {
         return cvDilatedImage;
     }
 
+    public static Mat deskewImage(Mat cvImg){
+        Size size = cvImg.size();
+
+        Mat cvInvertedImage = new Mat();
+        Core.bitwise_not(cvImg, cvInvertedImage);
+
+        Mat lines = new Mat();
+
+        Imgproc.HoughLinesP(cvInvertedImage, lines , 1, Math.PI/180, 100 , size.width/32.f, 30);
+        double angle = 0.0;
+
+        for (int i=0; i< lines.height() ; i++){
+            for (int j=0; j< lines.width(); j++){
+                angle += Math.atan2(lines.get(i,j)[3] - lines.get(i,j)[1], lines.get(i,j)[2] - lines.get(i,j)[0]);
+            }
+        }
+
+        Log.d(TAG, "deskewImage: " + String.valueOf(angle));
+        Log.d(TAG, "deskewImage: " + String.valueOf(angle * 180/Math.PI));
+
+        if (angle != 0.0){
+
+            angle /= lines.size().area();
+            angle = angle*180/Math.PI;
+
+            Point center = new Point(cvInvertedImage.width()/2 , cvInvertedImage.height()/2);
+            Mat rotImage = Imgproc.getRotationMatrix2D(center , angle , 1.0);
+
+            Size newSize = new Size(cvInvertedImage.width() , cvInvertedImage.height());
+            Imgproc.warpAffine(cvImg, cvImg, rotImage, newSize, Imgproc.INTER_LINEAR + Imgproc.CV_WARP_FILL_OUTLIERS, Core.BORDER_REPLICATE, new Scalar(255,255,255));
+
+
+            return cvImg;
+        }
+
+        return cvImg;
+    }
+
     public static CVTextBox mserTextDetection(Mat mat){
         Mat imageMat2 = new Mat();
         Imgproc.cvtColor(mat , imageMat2, Imgproc.COLOR_RGB2GRAY);
@@ -182,7 +222,7 @@ public class CVUtils {
             List<Pair<Point,Point>> rects = new ArrayList<>();
             for(int i = 0; i<contour2.size(); ++i){
                 rectan3 = Imgproc.boundingRect(contour2.get(i));
-                if(rectan3.area() > 0.5 * imgSize || rectan3.area()<100 || rectan3.width / rectan3.height < 2){
+                if(rectan3.area() > 0.6 * imgSize || rectan3.area()<100 || rectan3.width / rectan3.height < 2){
                     Mat roi = new Mat(morByte, rectan3);
                     roi.setTo(zeros);
                 }else{
